@@ -1,0 +1,33 @@
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache/build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+
+# Environment variables
+.env
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and outputs
+outputs/
+*.log
+
+# Archives / Windows metadata
+*.zip
+*:Zone.Identifier
+
+# Catena confidential baseline data
+data/catena_baseline/raw/
+data/catena_baseline/working/
+data/catena_baseline/processed/
