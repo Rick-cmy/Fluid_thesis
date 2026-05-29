@@ -4,7 +4,7 @@
 *(Swedish–English REIT Case Study)*
 
 KTH Royal Institute of Technology — Master's Thesis, 2026
-Mingyang Chen · Supervisors: Jörg Conradt (KTH), Arvind Kumar (examiner), Gabriella Rudström (Fluid Translation)
+Mingyang Chen
 
 ---
 
