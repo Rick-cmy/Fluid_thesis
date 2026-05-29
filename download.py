@@ -126,6 +126,74 @@ PAPERS = [
     ("78_FinAgentBench2025", "FinAgentBench: A Benchmark Dataset for Agentic Retrieval in Financial Question Answering", "arxiv", "2508.14052"),
     ("79_FinRetrieval2026", "FinRetrieval: A Benchmark for Financial Data Retrieval by AI Agents", "arxiv", "2603.04403"),
     ("80_AgentsHypeMT2025", "AI agents may be worth the hype but not the resources yet", "arxiv", "2505.01560"),
+
+    # ===== v3 补充(81-130):强相关、放松 venue、与 v2 不重复 =====
+    # J. 进阶 / agentic RAG
+    ("81_RAPTOR_Sarthi2024", "RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval", "arxiv", "2401.18059"),
+    ("82_RADIT_Lin2024", "RA-DIT: Retrieval-Augmented Dual Instruction Tuning", "arxiv", "2310.01352"),
+    ("83_RECOMP_Xu2024", "RECOMP: Improving Retrieval-Augmented LMs with Compression and Selective Augmentation", "arxiv", "2310.04408"),
+    ("84_SelfRoute_Xu2024", "Retrieval Augmented Generation or Long-Context LLMs? A Comprehensive Study and Hybrid Approach", "arxiv", "2407.16833"),
+    ("85_SpeculativeRAG_Wang2024", "Speculative RAG: Enhancing Retrieval Augmented Generation through Drafting", "arxiv", "2407.08223"),
+    ("86_CRAG_Yan2024", "Corrective Retrieval Augmented Generation", "arxiv", "2401.15884"),
+    ("87_GraphRAG_Edge2024", "From Local to Global: A Graph RAG Approach to Query-Focused Summarization", "arxiv", "2404.16130"),
+
+    # K. RAG vs 微调
+    ("88_RAGvsFT_Ovadia2024", "Fine-Tuning or Retrieval? Comparing Knowledge Injection in LLMs", "arxiv", "2312.05934"),
+    ("89_FTvsRAG_Soudani2024", "Fine Tuning vs. Retrieval Augmented Generation for Less Popular Knowledge", "arxiv", "2403.01432"),
+    ("90_RAGvsFT_Balaguer2024", "RAG vs Fine-tuning: Pipelines, Tradeoffs, and a Case Study on Agriculture", "arxiv", "2401.08406"),
+
+    # L. 成本 / 路由 / 效率
+    ("91_FrugalGPT_Chen2023", "FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance", "arxiv", "2305.05176"),
+    ("92_RouteLLM_Ong2024", "RouteLLM: Learning to Route LLMs with Preference Data", "arxiv", "2406.18665"),
+    ("93_HybridLLM_Ding2024", "Hybrid LLM: Cost-Efficient and Quality-Aware Query Routing", "arxiv", None),
+    ("94_AutoMix_Aggarwal2024", "AutoMix: Automatically Mixing Language Models", "arxiv", None),
+    ("95_RouterBench_Hu2024", "RouterBench: A Benchmark for Multi-LLM Routing System", "arxiv", "2403.12031"),
+    ("96_MoA_Wang2024", "Mixture-of-Agents Enhances Large Language Model Capabilities", "arxiv", "2406.04692"),
+    ("97_AgentsThatMatter_Kapoor2024", "AI Agents That Matter", "arxiv", "2407.01502"),
+
+    # M. LLM 翻译方法
+    ("98_GPTMT_Hendy2023", "How Good Are GPT Models at Machine Translation? A Comprehensive Evaluation", "arxiv", "2302.09210"),
+    ("99_PromptPaLM_Vilar2023", "Prompting PaLM for Translation: Assessing Strategies and Performance", "arxiv", "2211.09102"),
+    ("100_ALMA_Xu2024", "A Paradigm Shift in Machine Translation: Boosting Translation Performance of Large Language Models", "arxiv", "2309.11674"),
+    ("101_MAPS_He2024", "Exploring Human-like Translation Strategy with Large Language Models", "arxiv", "2305.04118"),
+    ("102_ParroT_Jiao2023", "ParroT: Translating During Chat Using Large Language Models tuned with Human Translation and Feedback", "arxiv", "2304.02426"),
+    ("103_Tower_Alves2024", "Tower: An Open Multilingual Large Language Model for Translation-Related Tasks", "arxiv", "2402.17733"),
+
+    # N. QE / 错误标注与后编辑工具
+    ("104_AutoMQM_Fernandes2023", "The Devil is in the Errors: Leveraging Large Language Models for Fine-grained Machine Translation Evaluation", "arxiv", "2308.07286"),
+    ("105_InstructScore_Xu2023", "INSTRUCTSCORE: Explainable Text Generation Evaluation with Fine-grained Feedback", "arxiv", "2305.14282"),
+    ("106_PostEditErrAnno_Ki2024", "Guiding Large Language Models to Post-Edit Machine Translation with Error Annotations", "arxiv", "2404.07851"),
+    ("107_EAPrompt_Lu2024", "Error Analysis Prompting Enables Human-Like Translation Evaluation in Large Language Models", "arxiv", None),
+
+    # O. 翻译记忆 / 检索增强 NMT / 重复
+    ("108_NeuralFuzzyRepair_Bulte2019", "Neural Fuzzy Repair: Integrating Fuzzy Matches into Neural Machine Translation", "url", "https://aclanthology.org/P19-1175.pdf"),
+    ("109_kNNMT_Khandelwal2021", "Nearest Neighbor Machine Translation", "arxiv", "2010.00710"),
+    ("110_MonoTM_Cai2021", "Neural Machine Translation with Monolingual Translation Memory", "arxiv", "2105.11269"),
+    ("111_SearchEngineNMT_Gu2018", "Search Engine Guided Neural Machine Translation", "arxiv", None),
+    ("112_TMaugLLM_Mu2023", "Augmenting Large Language Model Translators via Translation Memories", "arxiv", "2305.17367"),
+    ("113_RethinkTM_Hoang2023", "Rethinking Translation Memory Augmented Neural Machine Translation", "arxiv", "2306.06948"),
+
+    # P. 术语约束解码
+    ("114_GridBeam_Hokamp2017", "Lexically Constrained Decoding for Sequence Generation Using Grid Beam Search", "arxiv", "1704.07138"),
+    ("115_DynBeam_Post2018", "Fast Lexically Constrained Decoding with Dynamic Beam Allocation for Neural Machine Translation", "arxiv", "1804.06609"),
+
+    # Q. 金融 NLP
+    ("117_ConvFinQA_Chen2022", "ConvFinQA: Exploring the Chain of Numerical Reasoning in Conversational Finance Question Answering", "arxiv", "2210.03849"),
+    ("118_DocFinQA_Reddy2024", "DocFinQA: A Long-Document Financial Reasoning Dataset", "arxiv", "2401.06915"),
+    ("119_PIXIU_Xie2023", "PIXIU: A Comprehensive Benchmark, Instruction Dataset and Large Language Model for Finance", "arxiv", "2306.05443"),
+    ("120_FinBen_Xie2024", "FinBen: A Holistic Financial Benchmark for Large Language Models", "arxiv", "2402.12659"),
+    ("121_FinGPT_Yang2023", "FinGPT: Open-Source Financial Large Language Models", "arxiv", "2306.06031"),
+    ("122_FinBERT_Araci2019", "FinBERT: Financial Sentiment Analysis with Pre-trained Language Models", "arxiv", "1908.10063"),
+    ("123_BloombergGPT_Wu2023", "BloombergGPT: A Large Language Model for Finance", "arxiv", "2303.17564"),
+    ("124_FinanceBench_Islam2023", "FinanceBench: A New Benchmark for Financial Question Answering", "arxiv", "2311.11944"),
+    ("125_GoldenTouchstone_Wu2024", "Golden Touchstone: A Comprehensive Bilingual Benchmark for Evaluating Financial Large Language Models", "arxiv", "2411.06272"),
+
+    # R. 综述 & LLM-as-judge 偏差
+    ("126_MASSurvey_Guo2024", "Large Language Model based Multi-Agents: A Survey of Progress and Challenges", "arxiv", "2402.01680"),
+    ("127_AgentSurvey_Wang2024", "A Survey on Large Language Model based Autonomous Agents", "arxiv", "2308.11432"),
+    ("128_LLMJudgeSurvey_Gu2024", "A Survey on LLM-as-a-Judge", "arxiv", "2411.15594"),
+    ("129_LLMsJudgesSurvey_Li2024", "LLMs-as-Judges: A Comprehensive Survey on LLM-based Evaluation Methods", "arxiv", "2412.05579"),
+    ("130_ManyMinds_2025", "Judging with Many Minds: Do More Perspectives Mean Less Prejudice", "arxiv", "2505.19477"),
 ]
 
 # 不在 arXiv,需手动下(脚本会写进 report)
@@ -134,6 +202,7 @@ MANUAL = [
     ("52_WMT24Findings_Kocmi2024", "Findings of the WMT24 General/Metrics Shared Task", "https://aclanthology.org/events/wmt-2024/ 内检索"),
     ("53_WMT23QE_Blain2023", "Findings of the WMT 2023 Quality Estimation Shared Task", "https://aclanthology.org/2023.wmt-1.52/"),
     ("54_MQM_Lommel2014", "Multidimensional Quality Metrics (MQM) Framework", "标准文档,见 themqm.org / Tradumàtica"),
+    ("116_WMT23TermTask_Semenov2023", "Findings of the WMT 2023 Terminology Shared Task", "https://aclanthology.org/2023.wmt-1.21/"),
 ]
 
 def http_get(url, timeout=60):
@@ -154,7 +223,7 @@ def arxiv_resolve(title):
     if not m_id:
         return None, None
     arx = m_id.group(1).strip()
-    arx = re.sub(r"v\d+$", "", arx)  # 去掉版本号
+    arx = re.sub(r"v\d+$", "", arx)
     hit = re.sub(r"\s+", " ", m_ti.group(1)).strip() if m_ti else ""
     return arx, hit
 
@@ -180,15 +249,15 @@ def main():
     for i, (key, title, kind, val) in enumerate(PAPERS, 1):
         dest = os.path.join(OUT_DIR, key + ".pdf")
         if os.path.exists(dest) and os.path.getsize(dest) > 1000:
-            print(f"[{i:>2}/{len(PAPERS)}] 已存在,跳过: {key}")
+            print(f"[{i:>3}/{len(PAPERS)}] 已存在,跳过: {key}")
             ok.append((key, "已存在"))
             continue
         try:
             if kind == "url":
                 size = download_url(val, dest)
-                print(f"[{i:>2}/{len(PAPERS)}] OK  {key}  ({size//1024} KB)  <- {val}")
+                print(f"[{i:>3}/{len(PAPERS)}] OK  {key}  ({size//1024} KB)  <- {val}")
                 ok.append((key, val))
-            else:  # arxiv
+            else:
                 arx, hit = (val, "(直接ID)") if val else arxiv_resolve(title)
                 if not arx:
                     raise ValueError("arXiv 标题解析失败")
@@ -196,14 +265,13 @@ def main():
                 note = f"arXiv:{arx}"
                 if hit and hit != "(直接ID)":
                     note += f"  | 命中标题: {hit[:70]}"
-                print(f"[{i:>2}/{len(PAPERS)}] OK  {key}  ({size//1024} KB)  {note}")
+                print(f"[{i:>3}/{len(PAPERS)}] OK  {key}  ({size//1024} KB)  {note}")
                 ok.append((key, note))
         except Exception as e:
-            print(f"[{i:>2}/{len(PAPERS)}] 失败 {key}: {e}")
+            print(f"[{i:>3}/{len(PAPERS)}] 失败 {key}: {e}")
             fail.append((key, title, str(e)))
-        time.sleep(3.2)  # 礼貌限速(arXiv API ≥3s/次)
+        time.sleep(3.2)
 
-    # 写报告
     with open(REPORT, "w", encoding="utf-8") as f:
         f.write(f"成功 {len(ok)} / 共 {len(PAPERS)}\n\n=== 成功 ===\n")
         for k, n in ok:
@@ -215,7 +283,6 @@ def main():
         for k, t, where in MANUAL:
             f.write(f"  {k}\t{t}\t{where}\n")
 
-    # 打包
     with zipfile.ZipFile(ZIP_NAME, "w", zipfile.ZIP_DEFLATED) as z:
         for fn in sorted(os.listdir(OUT_DIR)):
             if fn.endswith(".pdf"):
@@ -230,4 +297,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
