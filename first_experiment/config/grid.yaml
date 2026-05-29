@@ -1,0 +1,40 @@
+rag_levels:
+  - no_rag
+  - vector
+  - hybrid
+
+coordination_levels:
+  - single_agent
+  - pipeline
+  - debate
+
+n_trials: 3
+eval_segment_count: 200   # novel segments per error type (drawn from test split only)
+temperature: 0.0
+
+split:
+  dev_ratio: 0.2    # 20% dev (prompt tuning), 80% test (final grid evaluation)
+  seed: 42          # fixed — do not change after first run
+
+error_types:
+  retrieval_addressable:
+    - terminology
+    - numeracy
+    - named_entity
+  coordination_addressable:
+    - fluency
+    - style_guide
+    - consistency
+
+rag:
+  k_retrieval: 5
+  recall_k: 5
+  termbase_path: "../data/client_baseline/processed/termbase.jsonl"
+
+data:
+  sentence_pairs_path: "../data/client_baseline/processed/sentence_pairs.jsonl"
+  benchmark_path: "../data/benchmark/financial_qa_benchmark_v0.jsonl"
+  q1_segments_path: "../data/client_baseline/processed/q1_2026_segments.jsonl"
+  q3_segments_path: "../data/client_baseline/processed/q3_2025_segments.jsonl"
+
+results_dir: "results"

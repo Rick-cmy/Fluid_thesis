@@ -1,0 +1,21 @@
+# Datasets and experiment outputs
+/data/
+/papers/
+/papers.zip
+/download_report.txt
+first_experiment/results/
+chorus_chat/outputs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Personal documents
+INDIVIDUAL_PLAN_*.pdf
+*Zone.Identifier
+supervisor_email_draft_may2026.md
+
+# Claude Code
+.claude/

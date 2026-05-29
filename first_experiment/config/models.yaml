@@ -1,0 +1,25 @@
+# Fixed model snapshots — do not change mid-experiment
+# Using Ollama local models for cost control; swap base_url for API provider
+
+default_model: "qwen3:8b"
+
+snapshots:
+  qwen3_8b:
+    provider: ollama
+    model_id: "qwen3:8b"
+    base_url: "http://127.0.0.1:11434"
+    temperature: 0.0
+    think: false          # disable Qwen3 thinking mode for determinism
+
+  llama3_1_8b:
+    provider: ollama
+    model_id: "llama3.1:8b"
+    base_url: "http://127.0.0.1:11434"
+    temperature: 0.0
+
+# xCOMET scorer
+xcomet:
+  model_id: "Unbabel/xCOMET-XL"
+  fallback_model_id: "Unbabel/xCOMET-Lite"
+  batch_size: 8
+  device: "auto"          # auto = GPU if available, else CPU
