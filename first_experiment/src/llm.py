@@ -12,7 +12,7 @@ def call_ollama(
     messages: list[dict],
     model: str,
     base_url: str = "http://127.0.0.1:11434",
-    timeout: int = 300,
+    timeout: int = 1800,
 ) -> tuple[dict, int, int]:
     options: dict[str, Any] = {"temperature": 0}
     extra: dict[str, Any] = {}
@@ -36,7 +36,7 @@ def call_ollama(
         parsed = json.loads(data["message"]["content"])
     except (json.JSONDecodeError, KeyError):
         parsed = {}
-    return parsed, prompt_tokens, completion_tokens
+    return parsed, prompt_tokens, completion_tokens  # parsed may be dict or list
 
 
 def call_deepseek(

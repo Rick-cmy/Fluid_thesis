@@ -17,6 +17,18 @@ snapshots:
     base_url: "http://127.0.0.1:11434"
     temperature: 0.0
 
+# MT error type annotation (Step 2 of MT-grounded eval set construction)
+# Runs locally via Ollama — no API cost. Each pair takes ~1-2s on CPU.
+# Output: data/mt_eval/labelled_*.jsonl  (6-class error type per pair)
+# Re-run with a stronger model by swapping model_id and provider.
+annotation:
+  model_id: "qwen3:8b"
+  provider: ollama
+  base_url: "http://127.0.0.1:11434"
+  temperature: 0.0
+  think: false
+  batch_size: 1             # single call per pair; batching slower due to long decode
+
 # xCOMET scorer
 xcomet:
   model_id: "Unbabel/xCOMET-XL"

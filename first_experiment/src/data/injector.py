@@ -29,18 +29,20 @@ class EvalSegment:
     injected_span: str    # the exact part of the draft that contains the error
     error_description: str
     is_novel: bool = True
+    is_clean: bool = False  # True for uninjected segments used to measure FP/TN
 
 
-# Client style-guide rules (from the Client Style Guide 2025)
+# Client style-guide rules (from Client Financial Style Guide, March 2026)
+# Format: (wrong, correct) — injector replaces `correct` with `wrong` in the draft
 _STYLE_SWAPS = [
-    ("percent", "per cent"),           # Client uses "per cent"
-    ("per cent", "percent"),
-    ("%", "per cent"),
-    ("December 31", "31 December"),    # Client uses day-first
-    ("31 December", "December 31"),
-    ("recognized", "recognised"),      # British English
-    ("recognised", "recognized"),
-    ("SEK ", "SEK"),                   # spacing normalisation test
+    ("per cent", "percent"),           # docx: "Use percent (not per cent)"
+    ("square meters", "m²"),           # docx: use m²/m2, not square meters
+    ("square meters", "m2"),
+    ("December 31", "31 December"),    # docx: British day-first date format
+    ("nomination committee", "Nomination Committee"),   # docx: capitalise
+    ("remuneration committee", "Remuneration Committee"),
+    ("audit committee", "Audit Committee"),
+    ("significant accounting policies", "material accounting policy information"),  # IAS 1 amendment
 ]
 
 # IFRS near-miss term pairs: (wrong, correct) — from financial domain knowledge
@@ -288,10 +290,11 @@ def build_eval_set(
     termbase: list[Term],
     n_per_type: int = 200,
     seed: int = 42,
-) -> list[EvalSegment]:
+) -> tuple[list[EvalSegment], set[str]]:
     """
     Builds a balanced evaluation set: n_per_type injected segments per error type.
     Segments are drawn from the novel (non-TM-matched) pool.
+    Returns (injected_set, used_ids) so the caller can build a disjoint clean set.
     """
     rng = random.Random(seed)
     shuffled = list(segments)
@@ -307,15 +310,50 @@ def build_eval_set(
     }
 
     eval_set: list[EvalSegment] = []
+    used_ids: set[str] = set()
     for error_type, inject_fn in injectors.items():
         count = 0
         for seg in shuffled:
             if count >= n_per_type:
                 break
+            if seg.id in used_ids:
+                continue
             result = inject_fn(seg)
             if result is not None:
                 eval_set.append(result)
+                used_ids.add(seg.id)
                 count += 1
         print(f"  {error_type.value}: {count}/{n_per_type} segments injected")
 
-    return eval_set
+    return eval_set, used_ids
+
+
+def build_clean_set(
+    segments: list[Segment],
+    n_clean: int = 200,
+    seed: int = 42,
+    exclude_ids: set[str] | None = None,
+) -> list[EvalSegment]:
+    """
+    Returns n_clean uninjected segments for false-positive / true-negative measurement.
+    Segments are drawn from the pool excluding any ids already used for injection.
+    One clean segment produces TN or FP signals for all 6 error types simultaneously.
+    """
+    rng = random.Random(seed + 1)  # offset seed so order differs from injected set
+    candidates = [s for s in segments if exclude_ids is None or s.id not in exclude_ids]
+    rng.shuffle(candidates)
+    clean_set = []
+    for seg in candidates[:n_clean]:
+        clean_set.append(EvalSegment(
+            segment_id=f"{seg.id}_clean",
+            source=seg.source,
+            draft=seg.translation,
+            gold_translation=seg.translation,
+            error_type=ErrorType.TERMINOLOGY,  # placeholder — ignored; is_clean=True governs
+            injected_span="",
+            error_description="clean segment (no injection)",
+            is_novel=True,
+            is_clean=True,
+        ))
+    print(f"  clean: {len(clean_set)}/{n_clean} segments sampled")
+    return clean_set

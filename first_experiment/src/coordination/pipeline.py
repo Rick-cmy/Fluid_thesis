@@ -7,13 +7,12 @@ from coordination.base import Coordinator, DimensionResult, ReviewResult
 from llm import call_llm
 
 _AGENTS = {
-    "accuracy":               "meaning preservation, omissions, additions, distortions",
-    "terminology":            "IFRS/IAS domain terms, glossary consistency",
-    "fluency":                "grammar, naturalness, readability in English",
-    "style":                  "tone, register, formality, financial reporting style",
-    "locale_convention":      "date/number/currency format, British vs American spelling",
-    "audience_appropriateness": "fit for professional financial translators and auditors",
-    "design_markup":          "formatting, tags, placeholders, structural integrity",
+    "terminology":  "IFRS/IAS financial terms and glossary consistency: flag wrong or non-standard terms (e.g. 'income' vs 'revenue', 'cost' vs 'expense', 'fair value' vs 'market value')",
+    "numeracy":     "numbers, amounts, percentages, dates, currencies, and units: verify every figure in the draft exactly matches the source",
+    "named_entity": "company names, property names, accounting standards (IFRS/IAS/GAAP), index names, and geographic names",
+    "fluency":      "grammar, naturalness, sentence structure, and readability in English",
+    "consistency":  "meaning consistency with the source: flag contradictions such as increased/decreased, profit/loss, positive/negative directional or polarity errors",
+    "style_guide":  "Client Financial Style Guide: decimal separator must be period not comma, use 'percent' not 'per cent', date format DD Month YYYY, British English spelling",
 }
 
 _SEVERITY_ORDER = {"critical": 3, "major": 2, "minor": 1, "none": 0}
@@ -97,17 +96,17 @@ def _run_one_agent(
 
 class Pipeline(Coordinator):
     """
-    7 specialist agents run in parallel (ThreadPoolExecutor).
+    6 specialist agents run in parallel (ThreadPoolExecutor).
     Results merged by highest-severity suggestion per dimension — no cross-review.
 
-    Token cost per segment: 7 calls (concurrent, wall-clock ≈ slowest single call).
+    Token cost per segment: 6 calls (concurrent, wall-clock ≈ slowest single call).
     """
 
     def __init__(
         self,
         provider: str = "ollama",
         base_url: str = "http://127.0.0.1:11434",
-        max_workers: int = 7,
+        max_workers: int = 6,
     ):
         self.provider = provider
         self.base_url = base_url

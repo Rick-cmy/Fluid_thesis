@@ -53,7 +53,14 @@ class CellMetrics:
     per_type: dict[str, ErrorTypeMetrics] = field(default_factory=dict)
 
     @property
+    def macro_recall(self) -> float:
+        types = [m for m in self.per_type.values() if (m.tp + m.fn) > 0]
+        return sum(m.recall for m in types) / len(types) if types else 0.0
+
+    @property
     def macro_f1(self) -> float:
+        """Primary metric. Eval set contains both injected (positive) and clean (negative) segments,
+        so FP is measurable and F1 is meaningful."""
         types = [m for m in self.per_type.values() if (m.tp + m.fn) > 0]
         return sum(m.f1 for m in types) / len(types) if types else 0.0
 
@@ -62,20 +69,21 @@ class CellMetrics:
             "rag_level": self.rag_level,
             "coord_level": self.coord_level,
             "trial": self.trial,
-            "macro_f1": round(self.macro_f1, 4),
+            "macro_f1": round(self.macro_f1, 4),      # primary metric
+            "macro_recall": round(self.macro_recall, 4),
             "per_type": {k: v.to_dict() for k, v in self.per_type.items()},
         }
 
 
-# MQM dimension → error type mapping
-# Used to find the relevant dimension result for a given injected error type.
+# Error type → dimension name mapping (1:1, unified across all coordinators).
+# All three coordinators (single_agent, pipeline, debate) use the same 6 names.
 _ERROR_TYPE_TO_DIMENSION: dict[str, list[str]] = {
-    ErrorType.TERMINOLOGY: ["terminology"],
-    ErrorType.NUMERACY: ["accuracy", "locale_convention"],
-    ErrorType.NAMED_ENTITY: ["accuracy", "terminology"],
-    ErrorType.FLUENCY: ["fluency"],
-    ErrorType.STYLE_GUIDE: ["style", "locale_convention"],
-    ErrorType.CONSISTENCY: ["accuracy"],
+    ErrorType.TERMINOLOGY:  ["terminology"],
+    ErrorType.NUMERACY:     ["numeracy"],
+    ErrorType.NAMED_ENTITY: ["named_entity"],
+    ErrorType.FLUENCY:      ["fluency"],
+    ErrorType.STYLE_GUIDE:  ["style_guide"],
+    ErrorType.CONSISTENCY:  ["consistency"],
 }
 
 

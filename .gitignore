@@ -3,6 +3,7 @@
 /papers/
 /papers.zip
 /download_report.txt
+download_report.txt
 first_experiment/results/
 chorus_chat/outputs/
 
@@ -16,6 +17,19 @@ __pycache__/
 INDIVIDUAL_PLAN_*.pdf
 *Zone.Identifier
 supervisor_email_draft_may2026.md
+PROGRESS_LOG.md
+DESIGN_NOTES.md
+PRODUCT_NOTES.md
 
 # Claude Code
 .claude/
+CLAUDE.md
+
+# Secrets — never commit any .env anywhere in the tree
+.env
+**/.env
+.env.*
+!**/.env.example
+
+# Build junk
+*.deb

@@ -6,18 +6,17 @@ from coordination.base import Coordinator, DimensionResult, ReviewResult
 from llm import call_llm
 
 _MQM_DIMENSIONS = [
-    ("accuracy", "meaning preservation, omissions, additions, distortions"),
-    ("terminology", "IFRS/IAS domain terms, glossary consistency"),
-    ("fluency", "grammar, naturalness, readability"),
-    ("style", "tone, register, formality, financial reporting style"),
-    ("locale_convention", "date/number/currency format, British vs American spelling"),
-    ("audience_appropriateness", "fit for professional financial translators and auditors"),
-    ("design_markup", "formatting, tags, placeholders, structural integrity"),
+    ("terminology", "IFRS/IAS domain terms, glossary consistency, near-miss IFRS terms"),
+    ("numeracy", "numbers, magnitudes, dates, currencies, percentage formats"),
+    ("named_entity", "company names, geographic locations, standards identifiers (ISO, IAS, IFRS)"),
+    ("fluency", "grammar, naturalness, readability, syntactic well-formedness"),
+    ("style_guide", "Client Financial Style Guide rules: tone, register, spelling conventions"),
+    ("consistency", "internal coherence, directional claims (profit/loss, increased/decreased)"),
 ]
 
 _SYSTEM_PROMPT = """\
 You are a professional translation quality reviewer for Swedish–English financial documents.
-Review the draft translation across all MQM quality dimensions simultaneously.
+Review the draft translation across all six quality dimensions simultaneously.
 Return a JSON object with one key per dimension. Each value must follow this schema:
 {
   "has_issue": true/false,
@@ -27,16 +26,15 @@ Return a JSON object with one key per dimension. Each value must follow this sch
   "explanation": "brief explanation"
 }
 
-Dimensions to assess: accuracy, terminology, fluency, style, locale_convention,
-audience_appropriateness, design_markup.
+Dimensions to assess: terminology, numeracy, named_entity, fluency, style_guide, consistency.
 
-If RAG context is provided, use it to verify terminology correctness.
+If RAG context is provided, use it to verify terminology and style-guide correctness.
 Return valid JSON only."""
 
 
 class SingleAgent(Coordinator):
     """
-    One LLM call with a full-review prompt covering all 7 MQM dimensions.
+    One LLM call with a full-review prompt covering all 6 dimensions.
     Coordination intensity: 1 LLM call per segment.
     """
 

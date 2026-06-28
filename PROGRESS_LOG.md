@@ -27,7 +27,7 @@ The full controlled experiment framework (`first_experiment/`) is now functional
 | Baseline runner | `scripts/run_baseline.py` | ✅ Done |
 | Full grid runner | `scripts/run_grid.py` | ✅ Done |
 | Smoke test (all 3 coordinators) | `scripts/smoke_test_parallel.py` | ✅ Done |
-| VectorRAG (sentence-transformers + FAISS) | `src/rag/vector_rag.py` | 🔜 Next |
+| VectorRAG (sentence-transformers + FAISS) | `src/rag/vector_rag.py` | ✅ Done |
 | HybridRAG (BM25 + dense) | `src/rag/hybrid_rag.py` | 🔜 Pending |
 | xCOMET span scorer | `src/eval/xcomet.py` | 🔜 Pending |
 
@@ -71,11 +71,27 @@ Debate   (8×par)   151 s           ~4,912       ✓ caught
 
 ---
 
+## 2026-05-31 — VectorRAG implemented
+
+- `src/rag/vector_rag.py` complete: `paraphrase-multilingual-mpnet-base-v2` + FAISS `IndexFlatIP`
+- Embeds all sv+en term forms → 3,990 vectors (dim=768)
+- recall@5 = 1.0 on finance terminology smoke test
+- Dependencies installed: `sentence-transformers`, `faiss-cpu` in `first_experiment/.venv/`
+
+**Baseline rerun with named_entity (n=5/type, 6 types = 30 segments):**
+```
+Macro F1: 0.635
+named_entity  P=1.0  R=0.4  F1=0.571   ← new type, lower recall as expected
+```
+(Previous 0.762 was 5-type run before named_entity was wired in.)
+
+---
+
 ## Next steps (June)
 
-1. Implement `VectorRAG` — sentence-transformers embeddings over the 1,938-term Client termbase, FAISS index, top-5 retrieval
-2. Run full baseline at scale: `--n-per-type 200` via Other LLM API
-3. Run 9-cell grid (3 RAG × 3 coordination) for the no_rag and vector_rag rows (6 of 9 cells)
-4. Begin error-type breakdown analysis comparing C1 vs. C2–C4
+1. Run `vector_rag × single_agent` cell — compare F1 vs. `no_rag` baseline per error type
+2. Run full baseline at scale: `--n-per-type 200` via cloud API
+3. Implement `HybridRAG` (BM25 + dense) → complete the 9-cell grid
+4. Begin error-type breakdown analysis comparing C1–C9
 
 ---

@@ -22,10 +22,10 @@ import yaml
 
 from data.loader import load_segments, load_termbase
 from data.splitter import split_novel_vs_tm, dev_test_split
-from data.injector import build_eval_set
+from data.injector import build_eval_set, build_clean_set
 from rag.no_rag import NoRAG
-from rag.vector_rag import VectorRAG
-from rag.hybrid_rag import HybridRAG
+from rag.term_rag import TermRAG
+from rag.rich_rag import RichRAG
 from coordination.single_agent import SingleAgent
 from coordination.pipeline import Pipeline
 from coordination.debate import Debate
@@ -39,6 +39,20 @@ def main():
     parser.add_argument("--trials", type=int, default=3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--ollama-url", default="http://127.0.0.1:11434")
+    parser.add_argument("--provider", default="ollama", choices=["ollama", "deepseek"])
+    parser.add_argument("--deepseek-model", default="deepseek-chat")
+    parser.add_argument(
+        "--coord-levels",
+        nargs="+",
+        default=None,
+        help="Override coordination levels from grid.yaml (e.g. --coord-levels single_agent)",
+    )
+    parser.add_argument(
+        "--rag-levels",
+        nargs="+",
+        default=None,
+        help="Override RAG levels from grid.yaml (e.g. --rag-levels no_rag vector rich)",
+    )
     args = parser.parse_args()
 
     base = Path(__file__).parent.parent
@@ -63,26 +77,38 @@ def main():
     print(f"Dev/Test split: {dt_split.summary()}")
     print("*** Using TEST split only for grid evaluation ***")
 
-    eval_segments = build_eval_set(dt_split.test, termbase, n_per_type=args.n_per_type, seed=args.seed)
-    print(f"Eval set: {len(eval_segments)} segments")
+    eval_segments, used_ids = build_eval_set(dt_split.test, termbase, n_per_type=args.n_per_type, seed=args.seed)
+    print(f"Eval set: {len(eval_segments)} injected segments")
+    clean_segments = build_clean_set(dt_split.test, n_clean=args.n_per_type, seed=args.seed, exclude_ids=used_ids)
+    print(f"Clean set: {len(clean_segments)} segments")
 
-    # Wire up retrievers — skip NotImplementedError ones
+    # Wire up retrievers
     retrievers = {"no_rag": NoRAG()}
     try:
-        retrievers["vector"] = VectorRAG(termbase)
+        retrievers["term_rag"] = TermRAG(termbase)
     except NotImplementedError:
-        print("VectorRAG not implemented — skipping vector cells.")
+        print("TermRAG not implemented — skipping term_rag cells.")
     try:
-        retrievers["hybrid"] = HybridRAG(termbase)
+        style_rules_path = base / cfg["rag"]["style_rules_path"]
+        k_rules = cfg["rag"].get("k_rules", 3)
+        retrievers["rich_rag"] = RichRAG(termbase, style_rules_path, k_rules=k_rules)
     except NotImplementedError:
-        print("HybridRAG not implemented — skipping hybrid cells.")
+        print("RichRAG not implemented — skipping rich_rag cells.")
 
-    coordinators = {"single_agent": SingleAgent(base_url=args.ollama_url)}
+    provider = args.provider
+    coordinators = {"single_agent": SingleAgent(provider=provider, base_url=args.ollama_url)}
     for name, cls in [("pipeline", Pipeline), ("debate", Debate)]:
         try:
-            coordinators[name] = cls()
+            coordinators[name] = cls(provider=provider)
         except NotImplementedError:
             print(f"{name} coordinator not implemented — skipping.")
+
+    if args.coord_levels:
+        cfg["coordination_levels"] = args.coord_levels
+    if args.rag_levels:
+        cfg["rag_levels"] = args.rag_levels
+
+    effective_model = args.deepseek_model if provider == "deepseek" else args.model
 
     results_dir = base / "results" / "grid"
     run_grid(
@@ -90,9 +116,10 @@ def main():
         eval_segments=eval_segments,
         retrievers=retrievers,
         coordinators=coordinators,
-        model=args.model,
+        model=effective_model,
         results_dir=results_dir,
         n_trials=args.trials,
+        clean_segments=clean_segments,
     )
 
 

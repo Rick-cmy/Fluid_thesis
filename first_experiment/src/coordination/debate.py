@@ -8,27 +8,51 @@ from coordination.base import Coordinator, DimensionResult, ReviewResult
 from coordination.pipeline import _AGENTS, _run_one_agent
 from llm import call_llm
 
-_COORDINATOR_SYSTEM = """You are the Round 2 coordinator in CHORUS, a multi-agent translation revision workflow.
+# ---------------------------------------------------------------------------
+# CHORUS-v2: Phase 2 meta-coordinator
+#
+# Design references:
+#   ChatEval (Chan et al., 2024)   — Simultaneous-Talk-with-Summarizer:
+#     parallel Phase 1 + single summariser outperforms sequential debate
+#   ReConcile (Chen et al., 2024) — grouped presentation + confidence scoring:
+#     present findings grouped by has_issue; confidence-weighted acceptance
+#   ManyMinds (Ma et al., 2025)   — meta-judge approach:
+#     iterative per-agent debate amplifies biases; single meta-judge is
+#     more robust and bias-resistant
+# ---------------------------------------------------------------------------
 
-CHORUS structure:
-- Round 1: specialist agents independently inspect one translation dimension each.
-- Round 2 (you): compare their evidence, filter invalid claims, resolve conflicts,
-  and produce one final consolidated recommendation for the human translator.
+_COORDINATOR_SYSTEM = """\
+You are a meta-coordinator synthesising the findings of six specialist \
+translation quality reviewers (CHORUS-v2 protocol, Phase 2).
 
-Your job:
-- Accept only suggestions supported by the source text and the agent's assigned role.
-- Reject out-of-scope, duplicated, unsupported, or hallucinated suggestions.
-- Resolve conflicts explicitly.
-- Produce one consolidated target-language revision.
-- If no suggestion is valid, keep the original draft.
+Each specialist independently reviewed one quality dimension of a \
+Swedish→English financial translation and reported a confidence score [0, 1].
 
-Return this exact JSON schema:
+Your responsibilities:
+1. ACCEPT findings where has_issue=true AND confidence ≥ 0.65,
+   OR severity="critical" regardless of confidence.
+2. REJECT findings where confidence < 0.40 AND severity is not "critical".
+3. CROSS-VALIDATE: if two or more specialists flag overlapping spans,
+   treat this as corroborating evidence and prefer these corrections.
+4. RESOLVE CONFLICTS: if specialists disagree on the same span, state
+   which correction you apply and why.
+5. PRODUCE one complete revised English translation that incorporates
+   all accepted corrections. If nothing is accepted, return the original
+   draft unchanged.
+
+Return this exact JSON schema — no other text:
 {
-  "final_recommendation": "one complete revised target translation",
-  "accepted_points": [{"agent": "name", "point": "suggestion", "reason": "why"}],
-  "rejected_points": [{"agent": "name", "point": "suggestion", "reason": "why"}],
-  "conflicts": [{"description": "conflict", "resolution": "how resolved"}],
-  "reasoning_summary": "short explanation for the translator",
+  "final_recommendation": "complete revised translation or original draft",
+  "accepted_points": [
+    {"agent": "name", "correction": "what was fixed", "confidence": 0.0, "reason": "why accepted"}
+  ],
+  "rejected_points": [
+    {"agent": "name", "finding": "what was rejected", "reason": "why rejected"}
+  ],
+  "conflicts_resolved": [
+    {"span": "text span", "agents": ["a", "b"], "decision": "resolution applied"}
+  ],
+  "reasoning_summary": "one concise paragraph for the human translator",
   "confidence": 0.0
 }"""
 
@@ -39,35 +63,49 @@ def _run_coordinator(
     source_lang: str,
     target_lang: str,
     domain: str,
-    agent_results: list[DimensionResult],
+    rag_context: str,
+    specialist_results: list[DimensionResult],
     model: str,
     provider: str,
     base_url: str,
 ) -> tuple[dict, int, int]:
-    agent_json = json.dumps(
-        [
-            {
-                "agent": d.agent,
-                "has_issue": d.has_issue,
-                "severity": d.severity,
-                "issue_span": d.issue_span,
-                "suggested_revision": d.suggested_revision,
-                "explanation": d.explanation,
-            }
-            for d in agent_results
-        ],
+    # Grouped presentation (ReConcile): specialists with findings first,
+    # then those that found nothing — keeps the coordinator focused.
+    with_issues = [d for d in specialist_results if d.has_issue]
+    without_issues = [d for d in specialist_results if not d.has_issue]
+
+    findings_payload = json.dumps(
+        {
+            "specialists_with_findings": [
+                {
+                    "agent": d.agent,
+                    "severity": d.severity,
+                    "confidence": round(d.confidence, 3),
+                    "issue_span": d.issue_span,
+                    "suggested_revision": d.suggested_revision,
+                    "explanation": d.explanation,
+                }
+                for d in with_issues
+            ],
+            "specialists_no_findings": [d.agent for d in without_issues],
+        },
         ensure_ascii=False,
         indent=2,
     )
+
+    rag_block = f"\n\n{rag_context}" if rag_context else ""
     user = (
         f"Source language: {source_lang}\n"
         f"Target language: {target_lang}\n"
-        f"Domain: {domain}\n\n"
+        f"Domain: {domain}{rag_block}\n\n"
         f"Source text:\n<SOURCE>\n{source}\n</SOURCE>\n\n"
         f"Current draft:\n<DRAFT>\n{draft}\n</DRAFT>\n\n"
-        f"Round 1 agent outputs:\n<AGENT_RESULTS>\n{agent_json}\n</AGENT_RESULTS>\n\n"
-        "Produce the CHORUS Round 2 consolidated recommendation. Return JSON only."
+        f"Phase 1 specialist findings:\n"
+        f"<SPECIALIST_FINDINGS>\n{findings_payload}\n</SPECIALIST_FINDINGS>\n\n"
+        "Synthesise and produce the Phase 2 consolidated recommendation. "
+        "Return JSON only."
     )
+
     messages = [
         {"role": "system", "content": _COORDINATOR_SYSTEM},
         {"role": "user", "content": user},
@@ -77,19 +115,25 @@ def _run_coordinator(
 
 class Debate(Coordinator):
     """
-    Full CHORUS protocol:
-      Round 1 — 7 specialist agents run in parallel (ThreadPoolExecutor).
-      Round 2 — coordinator synthesises, filters, resolves conflicts.
+    CHORUS-v2: 2-phase meta-coordination protocol.
 
-    Token cost per segment: 7 (Round 1, concurrent) + 1 (Round 2) = 8 calls.
-    Wall-clock latency ≈ max(Round 1 agent latency) + Round 2 latency.
+    Phase 1 — 6 specialist agents review independently in parallel.
+               Identical to Pipeline Phase 1; reuses _AGENTS + _run_one_agent.
+    Phase 2 — 1 meta-coordinator synthesises all Phase 1 findings using
+               confidence thresholding and cross-agent corroboration.
+
+    Token cost: 6 (Phase 1) + 1 (Phase 2) = 7 calls/segment.
+    Compare: old 3-round design = 13 calls/segment.
+
+    Metrics contract: dimension_results carries Phase 1 outputs so that
+    metrics.py per-error-type F1 evaluation is unchanged (looks up d.agent).
     """
 
     def __init__(
         self,
         provider: str = "ollama",
         base_url: str = "http://127.0.0.1:11434",
-        max_workers: int = 7,
+        max_workers: int = 6,
     ):
         self.provider = provider
         self.base_url = base_url
@@ -108,8 +152,8 @@ class Debate(Coordinator):
         t0 = time.monotonic()
         total_prompt, total_completion = 0, 0
 
-        # Round 1: parallel specialists
-        round1_results: list[DimensionResult] = []
+        # ── Phase 1: parallel independent specialist review ──────────────────
+        phase1_results: list[DimensionResult] = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
             futures = {
                 pool.submit(
@@ -122,24 +166,24 @@ class Debate(Coordinator):
             }
             for future in as_completed(futures):
                 dim, pt, ct = future.result()
-                round1_results.append(dim)
+                phase1_results.append(dim)
                 total_prompt += pt
                 total_completion += ct
 
-        # Round 2: coordinator
+        # ── Phase 2: meta-coordinator synthesises Phase 1 findings ──────────
         coord_json, pt2, ct2 = _run_coordinator(
-            source, draft, source_lang, target_lang, domain,
-            round1_results, model, self.provider, self.base_url,
+            source, draft, source_lang, target_lang, domain, rag_context,
+            phase1_results, model, self.provider, self.base_url,
         )
         total_prompt += pt2
         total_completion += ct2
 
         return ReviewResult(
             final_recommendation=coord_json.get("final_recommendation", draft),
-            dimension_results=round1_results,
+            dimension_results=phase1_results,      # Phase 1 used for per-dim F1 in metrics.py
             accepted_points=coord_json.get("accepted_points", []),
             rejected_points=coord_json.get("rejected_points", []),
-            conflicts=coord_json.get("conflicts", []),
+            conflicts=coord_json.get("conflicts_resolved", []),
             reasoning_summary=coord_json.get("reasoning_summary", ""),
             confidence=float(coord_json.get("confidence", 0.0)),
             prompt_tokens=total_prompt,

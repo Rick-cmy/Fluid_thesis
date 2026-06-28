@@ -1,7 +1,7 @@
 rag_levels:
   - no_rag
-  - vector
-  - hybrid
+  - term_rag
+  - rich_rag
 
 coordination_levels:
   - single_agent
@@ -28,8 +28,10 @@ error_types:
 
 rag:
   k_retrieval: 5
+  k_rules: 3
   recall_k: 5
   termbase_path: "../data/client_baseline/processed/termbase.jsonl"
+  style_rules_path: "../data/client_baseline/processed/style_rules.jsonl"
 
 data:
   sentence_pairs_path: "../data/client_baseline/processed/sentence_pairs.jsonl"
