@@ -6,6 +6,7 @@
 download_report.txt
 first_experiment/results/
 chorus_chat/outputs/
+fluid_qa/
 
 # Python
 __pycache__/
